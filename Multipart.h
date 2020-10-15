@@ -7,7 +7,7 @@ namespace HTTP {
 	class Multipart {
 	private:
 		std::string _boundary;
-		std::stringstream _body;
+		std::string _body;
 	public:
 		Multipart(std::string const& boundary);
 		void addTextParameter(std::string const& name, std::string const& value);
