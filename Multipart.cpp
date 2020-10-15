@@ -7,6 +7,7 @@
 
 HTTP::Multipart::Multipart(std::string const& boundary)
 {
+	this->_body.reserve(4 * 1024 * 1024);
 	// Sets the boundary
 	this->_boundary = boundary;
 }
@@ -14,10 +15,10 @@ HTTP::Multipart::Multipart(std::string const& boundary)
 void HTTP::Multipart::addTextParameter(std::string const& name, std::string const& value)
 {
 	// Add a text parameter to the body of the multipart request
-	this->_body << "--" << this->_boundary << "\r\n";
-	this->_body << "Content-Disposition: form-data; name=\"" << name << "\"\r\n\r\n";
-	this->_body << value;
-	this->_body << "\r\n";
+	this->_body.append("--").append(this->_boundary).append("\r\n");
+	this->_body.append("Content-Disposition: form-data; name=\"").append(name).append("\"\r\n\r\n");
+	this->_body.append(value);
+	this->_body.append("\r\n");
 }
 
 void HTTP::Multipart::addFileParameter(std::string const& name, std::string const& filepath, std::string const& filename, std::string const& contentType)
@@ -30,8 +31,8 @@ void HTTP::Multipart::addFileParameter(std::string const& name, std::string cons
 	}
 
 	// Add a file parameter to the body of the multipart request
-	this->_body << "--" + this->_boundary << "\r\n";
-	this->_body << "Content-Disposition: form-data; name=\"" << name << "\"; filename=\"" << filename << "\"; Content-Type: image/" << contentType << "\r\n\r\n";
+	this->_body.append("--").append(this->_boundary).append("\r\n");
+	this->_body.append("Content-Disposition: form-data; name=\"").append(name).append("\"; filename=\"").append(filename).append("\"; Content-Type: image/").append(contentType).append("\r\n\r\n");
 
 	// Get the file content into a buffer
 	std::streamsize size = ifile.tellg();
@@ -44,25 +45,25 @@ void HTTP::Multipart::addFileParameter(std::string const& name, std::string cons
 	delete[] buff;
 
 	// Append the buffer to the body
-	this->_body << stream;
-	this->_body << "\r\n";
+	this->_body.append(stream);
+	this->_body.append("\r\n");
 }
 
 void HTTP::Multipart::addRawImage(std::string const& name, unsigned char* data, size_t size, std::string const& filename, std::string const& contentType)
 {
-	this->_body << "--" + this->_boundary << "\r\n";
-	this->_body << "Content-Disposition: form-data; name=\"" << name << "\"; filename=\"" << filename << "\"\r\nContent-Type: image/" << contentType << "\r\n\r\n";
+	this->_body.append("--").append(this->_boundary).append("\r\n");
+	this->_body.append("Content-Disposition: form-data; name=\"").append(name).append("\"; filename=\"").append(filename).append("\"\r\nContent-Type: image/").append(contentType).append("\r\n\r\n");
 	
 	// Append the stream to the body
-	this->_body.write(reinterpret_cast<char const*>(data), size);
-	this->_body << "\r\n";
+	this->_body.append(reinterpret_cast<char const*>(data), size);
+	this->_body.append("\r\n");
 }
 
 std::string HTTP::Multipart::getBody()
 {
 	// Append the closing section and return the body
-	this->_body << "--" << this->_boundary << "--";
-	return this->_body.str();
+	this->_body.append("--").append(this->_boundary).append("--");
+	return this->_body;
 }
 
 std::string HTTP::Multipart::getContentType()
